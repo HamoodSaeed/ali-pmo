@@ -23,7 +23,7 @@ services:
       - key: TAP_SOURCE_ID
         value: src_all
       - key: TAP_SAVE_CARD
-        value: "true"
+        value: "false"
       - key: TAP_PLAN_AMOUNT
         value: "1.000"
       - key: TAP_PLAN_CURRENCY
