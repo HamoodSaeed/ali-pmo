@@ -26,8 +26,8 @@ from storage.billing_storage import get_subscription, is_subscription_active, no
 
 class CheckoutRequest(BaseModel):
     email: EmailStr
-    first_name: str = Field(default="Ali", max_length=80)
-    last_name: str = Field(default="PMO User", max_length=80)
+    first_name: str = Field(default="", max_length=80)
+    last_name: str = Field(default="", max_length=80)
     phone_country_code: str = Field(default="968", max_length=6)
     phone_number: str | None = Field(default=None, max_length=24)
 
@@ -93,7 +93,7 @@ async def create_tap_checkout(payload: CheckoutRequest) -> dict[str, Any]:
         "description": f"Ali PMO monthly subscription - {TAP_PLAN_AMOUNT:.3f} {TAP_PLAN_CURRENCY} per user",
         "metadata": {
             "product": "ali-pmo",
-            "plan": "monthly_omr_0_050",
+            "plan": "monthly_omr_1.00",
             "billing_interval": "month",
             "user_email": email,
         },
