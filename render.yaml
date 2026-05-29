@@ -25,7 +25,7 @@ services:
       - key: TAP_SAVE_CARD
         value: "false"
       - key: TAP_PLAN_AMOUNT
-        value: "0.050"
+        value: "1.000"
       - key: TAP_PLAN_CURRENCY
         value: OMR
       - key: TAP_PLAN_INTERVAL_DAYS
