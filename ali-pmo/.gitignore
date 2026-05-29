@@ -1,0 +1,23 @@
+# Python
+backend/.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# Local runtime storage
+backend/storage/projects/
+backend/storage/billing/
+backend/outputs/*
+!backend/outputs/.gitkeep
+backend/.env
+
+# Deploy tooling
+.netlify/
+
+# OS/editor noise
+.DS_Store

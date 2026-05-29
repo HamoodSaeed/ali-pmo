@@ -1,0 +1,85 @@
+Project Name: Customer Portal Modernization
+
+Background:
+The organization needs to modernize the customer self-service portal to reduce call center volume and improve customer visibility of requests, invoices, and support cases.
+
+Scope:
+- Replace the legacy customer portal with a responsive web portal
+- Integrate customer profile, invoice, and support case data
+- Deliver executive-ready weekly status reporting during implementation
+- Out of scope: replacing the core ERP system
+
+Objectives:
+- Reduce support request calls by 20 percent within three months of launch
+- Improve customer request visibility and response transparency
+- Establish clear project controls for scope, risks, dependencies, and approvals
+
+Deliverables:
+- Approved project charter
+- Integrated project plan
+- Customer portal design specification
+- Configured portal MVP
+- UAT completion report
+- Go-live readiness checklist
+- RAID log
+- Executive status pack
+
+Milestones:
+- Project kickoff on 2026-06-08
+- Charter approval on 2026-06-15
+- Design sign-off on 2026-07-03
+- MVP build complete on 2026-08-14
+- UAT complete on 2026-09-04
+- Go-live approval on 2026-09-11
+
+Tasks:
+- Confirm project charter and success metrics | Owner: PMO Lead
+- Prepare stakeholder engagement plan | Owner: Change Manager
+- Capture customer portal requirements with business SMEs | Owner: Business Analyst
+- Design portal information architecture | Owner: UX Lead
+- Configure authentication and customer profile integration | Owner: IT Lead | requires identity provider readiness
+- Build invoice and support case views | Owner: Delivery Team | depends on ERP data access
+- Prepare UAT scripts and test data | Owner: QA Lead
+- Validate portal MVP with pilot customers after approval from sponsor
+- Prepare go-live checklist and support handover | Owner: PMO Lead
+
+Dependencies:
+- Pending ERP data access approval from Finance
+- Identity provider readiness is required before integration testing
+- Legal approval required for updated customer terms
+
+Risks:
+- ERP data access delay could impact MVP build and executive launch commitment
+- Pilot customer availability may reduce UAT coverage
+- Identity provider configuration issue could block integration testing
+
+Assumptions:
+- Business SMEs are available for weekly workshops
+- Existing ERP APIs can support read-only customer data access
+- PMO Lead can coordinate steering committee decisions within five business days
+
+Constraints:
+- MVP must use existing enterprise authentication
+- No replacement of the ERP system is approved
+- Budget approval is limited to the portal MVP phase
+
+Stakeholders:
+- Executive Sponsor: Chief Customer Officer
+- Project Owner: Head of Digital
+- PMO Lead: Ali PMO Prototype User
+- IT Lead: Enterprise Applications Manager
+- Finance Approver: Finance Operations Director
+- Legal Approver: Legal Counsel
+
+Required Approvals:
+- Charter approval by Executive Sponsor
+- Design sign-off by Head of Digital
+- ERP data access approval by Finance
+- Customer terms approval by Legal
+- Go-live approval by steering committee
+
+Acceptance Criteria:
+- Portal MVP supports login, customer profile view, invoice view, and support case view
+- UAT report has no open critical defects
+- Go-live checklist approved by PMO Lead and Executive Sponsor
+- RAID log includes owner, impact, mitigation, and escalation status for all high-impact items
