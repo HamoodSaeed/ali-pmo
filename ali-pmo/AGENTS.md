@@ -71,7 +71,7 @@ pytest
 - Frontend Netlify builds use `VITE_API_BASE_URL` to call the deployed FastAPI backend.
 - Backend CORS is controlled by `ALI_PMO_CORS_ORIGINS`.
 - Set `ALI_PMO_PAYMENT_REQUIRED=true` to enforce active subscription checks on project endpoints.
-- Tap checkout uses `TAP_SECRET_KEY`, `TAP_SOURCE_ID`, `TAP_PLAN_AMOUNT=1.000`, and `TAP_PLAN_CURRENCY=OMR`.
+- Tap checkout uses `TAP_SECRET_KEY`, `TAP_SOURCE_ID`, `TAP_PLAN_AMOUNT=0.050`, and `TAP_PLAN_CURRENCY=OMR`.
 - Tap recurring billing requires Save Card activation on the merchant account. Store Tap Customer ID, Card ID, and Payment Agreement ID from successful payments for scheduled renewals.
 - Before production, add Tap webhook signature validation and real authentication.
 

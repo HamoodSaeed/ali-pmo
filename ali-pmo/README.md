@@ -71,7 +71,7 @@ The Vite dev server proxies `/api` calls to the FastAPI backend.
 
 ## Tap Billing Setup
 
-Ali PMO includes a Tap Payments checkout flow for a `1.000 OMR` monthly user subscription.
+Ali PMO includes a Tap Payments checkout flow for a `0.050 OMR` monthly user subscription.
 
 Backend environment variables:
 
@@ -84,7 +84,7 @@ TAP_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxx
 TAP_MERCHANT_ID=
 TAP_SOURCE_ID=src_all
 TAP_SAVE_CARD=true
-TAP_PLAN_AMOUNT=1.000
+TAP_PLAN_AMOUNT=0.050
 TAP_PLAN_CURRENCY=OMR
 TAP_PLAN_INTERVAL_DAYS=30
 ```

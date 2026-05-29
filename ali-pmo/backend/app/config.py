@@ -26,6 +26,6 @@ TAP_SECRET_KEY = os.getenv("TAP_SECRET_KEY", "")
 TAP_MERCHANT_ID = os.getenv("TAP_MERCHANT_ID", "")
 TAP_SOURCE_ID = os.getenv("TAP_SOURCE_ID", "src_all")
 TAP_SAVE_CARD = os.getenv("TAP_SAVE_CARD", "true").lower() == "true"
-TAP_PLAN_AMOUNT = float(os.getenv("TAP_PLAN_AMOUNT", "1.000"))
+TAP_PLAN_AMOUNT = float(os.getenv("TAP_PLAN_AMOUNT", "0.050"))
 TAP_PLAN_CURRENCY = os.getenv("TAP_PLAN_CURRENCY", "OMR")
 TAP_PLAN_INTERVAL_DAYS = int(os.getenv("TAP_PLAN_INTERVAL_DAYS", "30"))

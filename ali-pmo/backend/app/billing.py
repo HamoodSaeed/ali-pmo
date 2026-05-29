@@ -90,10 +90,10 @@ async def create_tap_checkout(payload: CheckoutRequest) -> dict[str, Any]:
         "customer_initiated": True,
         "threeDSecure": True,
         "save_card": should_save_card,
-        "description": "Ali PMO monthly subscription - 1 OMR per user",
+        "description": f"Ali PMO monthly subscription - {TAP_PLAN_AMOUNT:.3f} {TAP_PLAN_CURRENCY} per user",
         "metadata": {
             "product": "ali-pmo",
-            "plan": "monthly_omr_1",
+            "plan": "monthly_omr_0_050",
             "billing_interval": "month",
             "user_email": email,
         },
@@ -125,7 +125,7 @@ async def create_tap_checkout(payload: CheckoutRequest) -> dict[str, Any]:
         email,
         {
             "status": "pending",
-            "plan": "monthly_omr_1",
+            "plan": "monthly_omr_0_050",
             "amount": TAP_PLAN_AMOUNT,
             "currency": TAP_PLAN_CURRENCY,
             "tap_charge_id": charge.get("id"),
@@ -179,7 +179,7 @@ async def confirm_tap_charge(tap_id: str, email: str) -> dict[str, Any]:
         {
             **(get_subscription(normalized) or {}),
             "status": "active",
-            "plan": "monthly_omr_1",
+            "plan": "monthly_omr_0_050",
             "amount": TAP_PLAN_AMOUNT,
             "currency": TAP_PLAN_CURRENCY,
             "started_at": now.isoformat(),
@@ -205,7 +205,7 @@ async def record_tap_webhook(payload: dict[str, Any]) -> dict[str, str]:
             {
                 **(get_subscription(email) or {}),
                 "status": "active",
-                "plan": "monthly_omr_1",
+                "plan": "monthly_omr_0_050",
                 "amount": TAP_PLAN_AMOUNT,
                 "currency": TAP_PLAN_CURRENCY,
                 "started_at": now.isoformat(),

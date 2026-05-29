@@ -303,7 +303,7 @@ function App() {
             </button>
             <button className={billingLocked ? "payment-button due" : "payment-button"} onClick={() => setPage("billing")}>
               {billingStatus?.active ? <ShieldCheck size={16} /> : <CreditCard size={16} />}
-              {billingStatus?.active ? "Active" : "1 OMR/month"}
+              {billingStatus?.active ? "Active" : "0.050 OMR/month"}
             </button>
           </div>
         </header>
@@ -478,7 +478,7 @@ function BillingRequiredNotice({ onBilling }: { onBilling: () => void }) {
   return (
     <div className="notice wide billing-notice">
       <CreditCard size={18} />
-      <span>Ali PMO processing is locked until the user has an active 1 OMR monthly subscription.</span>
+      <span>Ali PMO processing is locked until the user has an active 0.050 OMR monthly subscription.</span>
       <button className="secondary-button" onClick={onBilling}>
         Manage billing
       </button>
@@ -506,7 +506,7 @@ function BillingPage({
   const [phoneNumber, setPhoneNumber] = useState("");
 
   const active = Boolean(status?.active);
-  const amount = config ? `${config.amount.toFixed(3)} ${config.currency}` : "1.000 OMR";
+  const amount = config ? `${config.amount.toFixed(3)} ${config.currency}` : "0.050 OMR";
 
   function submitCheckout(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
