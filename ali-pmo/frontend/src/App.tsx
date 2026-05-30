@@ -82,8 +82,18 @@ function App() {
   }
 
   async function confirmPaymentReturn(params: URLSearchParams) {
+    const provider = params.get("provider");
     const tapId = params.get("tap_id");
     const email = params.get("email") || getBillingEmail();
+    if (provider === "lemonsqueezy" && email) {
+      setBillingEmail(email);
+      window.history.replaceState({}, "", window.location.pathname);
+      const result = await refreshBilling(email);
+      setPage(result?.status.active ? "upload" : "billing");
+      setMessage(result?.status.active ? "Subscription active. You can upload project documents now." : "Payment received. Refresh status shortly while Lemon Squeezy confirms the subscription.");
+      if (result?.status.active) await refreshProjects();
+      return;
+    }
     if (!tapId || !email) {
       setPage("billing");
       setError("Payment return is missing Tap transaction details.");
@@ -243,14 +253,14 @@ function App() {
   async function startCheckout(payload: CheckoutPayload) {
     setBusyAction("checkout");
     setError(null);
-    setMessage("Creating Tap checkout...");
+    setMessage("Creating secure checkout...");
     try {
       setBillingEmail(payload.email);
       const result = await api.createCheckout(payload);
       window.location.href = result.checkout_url;
     } catch (err) {
       setError(readError(err));
-      setMessage("Tap checkout could not be created.");
+      setMessage("Checkout could not be created.");
     } finally {
       setBusyAction(null);
     }
@@ -303,7 +313,7 @@ function App() {
             </button>
             <button className={billingLocked ? "payment-button due" : "payment-button"} onClick={() => setPage("billing")}>
               {billingStatus?.active ? <ShieldCheck size={16} /> : <CreditCard size={16} />}
-              {billingStatus?.active ? "Active" : "1.000 OMR/month"}
+              {billingStatus?.active ? "Active" : billingConfig ? `${billingConfig.amount.toFixed(2)} ${billingConfig.currency}/month` : "Monthly access"}
             </button>
           </div>
         </header>
@@ -478,7 +488,7 @@ function BillingRequiredNotice({ onBilling }: { onBilling: () => void }) {
   return (
     <div className="notice wide billing-notice">
       <CreditCard size={18} />
-      <span>Ali PMO processing is locked until the user has an active 1.000 OMR monthly subscription.</span>
+      <span>Ali PMO processing is locked until the user has an active monthly subscription.</span>
       <button className="secondary-button" onClick={onBilling}>
         Manage billing
       </button>
@@ -506,7 +516,8 @@ function BillingPage({
   const [phoneNumber, setPhoneNumber] = useState("");
 
   const active = Boolean(status?.active);
-  const amount = config ? `${config.amount.toFixed(3)} ${config.currency}` : "1.000 OMR";
+  const amount = config ? `${config.amount.toFixed(2)} ${config.currency}` : "Monthly access";
+  const providerName = config?.provider === "lemonsqueezy" ? "Lemon Squeezy" : "Tap";
 
   function submitCheckout(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -531,8 +542,7 @@ function BillingPage({
         <p className="eyebrow">Ali PMO monthly access</p>
         <h3>{amount} per user per month</h3>
         <p>
-          Tap hosted checkout keeps card entry outside Ali PMO. The backend creates the Tap charge, confirms the returned Tap transaction, and stores the
-          subscription period locally.
+          {providerName} hosted checkout keeps card entry outside Ali PMO. Access is unlocked only after the payment provider confirms the subscription.
         </p>
         <div className={active ? "subscription-state active" : "subscription-state"}>
           {active ? <ShieldCheck size={22} /> : <CreditCard size={22} />}
@@ -545,7 +555,7 @@ function BillingPage({
 
       <div className="control-panel">
         <div className="section-heading">
-          <h3>Tap checkout</h3>
+          <h3>{providerName} checkout</h3>
           <span>{config?.tap_configured ? "Configured" : "Needs key"}</span>
         </div>
         <form className="billing-form" onSubmit={submitCheckout}>
@@ -576,7 +586,7 @@ function BillingPage({
             Pay {amount}
           </button>
         </form>
-        {!config?.tap_configured && <p className="form-note">Set TAP_SECRET_KEY on the backend before real payments can start.</p>}
+        {!config?.tap_configured && <p className="form-note">Billing setup is incomplete. Add the provider credentials on the backend.</p>}
       </div>
 
       <div className="content-section wide">

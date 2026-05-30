@@ -10,6 +10,7 @@ from fastapi import HTTPException, Request
 from pydantic import BaseModel, EmailStr, Field
 
 from app.config import (
+    BILLING_PROVIDER,
     PAYMENT_REQUIRED,
     PUBLIC_API_URL,
     PUBLIC_APP_URL,
@@ -39,6 +40,8 @@ class CheckoutRequest(BaseModel):
 
 def billing_config() -> dict[str, Any]:
     return {
+        "provider": "tap",
+        "active_provider": BILLING_PROVIDER,
         "payment_required": PAYMENT_REQUIRED,
         "tap_configured": bool(TAP_SECRET_KEY),
         "amount": TAP_PLAN_AMOUNT,

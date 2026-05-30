@@ -103,6 +103,29 @@ Important Tap notes:
 - The frontend calls `GET /api/billing/confirm` to verify the Tap charge before unlocking the app.
 - Recurring monthly charging requires Tap Save Card to be enabled on your Tap merchant account. Ali PMO stores Tap customer/card/payment-agreement IDs when Tap returns them, so a future scheduled monthly charge worker can use them.
 
+## Lemon Squeezy Billing Setup
+
+Ali PMO can use Lemon Squeezy hosted checkout while a local payment gateway is pending approval. Create and publish a monthly subscription product in Lemon Squeezy test mode, then add these backend-only environment variables:
+
+```text
+ALI_PMO_BILLING_PROVIDER=lemonsqueezy
+LEMONSQUEEZY_API_KEY=replace_with_test_mode_key
+LEMONSQUEEZY_STORE_ID=replace_with_store_id
+LEMONSQUEEZY_VARIANT_ID=replace_with_monthly_subscription_variant_id
+LEMONSQUEEZY_WEBHOOK_SECRET=replace_with_random_webhook_signing_secret
+LEMONSQUEEZY_TEST_MODE=true
+LEMONSQUEEZY_PLAN_AMOUNT_CENTS=100
+LEMONSQUEEZY_PLAN_CURRENCY=USD
+```
+
+Create a Lemon Squeezy webhook pointing to:
+
+```text
+https://your-backend.example.com/api/billing/lemonsqueezy/webhook
+```
+
+Enable subscription and order events. Keep the API key and webhook signing secret backend-only. The frontend redirects to hosted checkout, and Ali PMO unlocks access only after verifying a signed subscription webhook.
+
 ## Upload A Sample Document
 
 1. Start the backend.

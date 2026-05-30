@@ -102,13 +102,16 @@ export type OutputFile = {
 };
 
 export type BillingConfig = {
+  provider: string;
+  active_provider: string;
   payment_required: boolean;
   tap_configured: boolean;
   amount: number;
   currency: string;
   interval: string;
   interval_days: number;
-  save_card_requested: boolean;
+  save_card_requested?: boolean;
+  test_mode?: boolean;
 };
 
 export type BillingSubscription = {
@@ -122,6 +125,9 @@ export type BillingSubscription = {
   tap_customer_id?: string;
   tap_card_id?: string;
   tap_payment_agreement_id?: string;
+  provider?: string;
+  provider_status?: string;
+  subscription_id?: string;
 };
 
 export type BillingStatus = {
@@ -144,7 +150,8 @@ export type CheckoutResponse = {
   tap_charge_id?: string;
   amount: number;
   currency: string;
-  save_card_requested: boolean;
+  save_card_requested?: boolean;
+  test_mode?: boolean;
 };
 
 export type ProjectSnapshot = {

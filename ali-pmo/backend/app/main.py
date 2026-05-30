@@ -16,7 +16,20 @@ from app.billing import (
     record_tap_webhook,
     require_active_subscription,
 )
-from app.config import CORS_ORIGINS
+from app.config import (
+    BILLING_PROVIDER,
+    CORS_ORIGINS,
+    LEMONSQUEEZY_PLAN_AMOUNT_CENTS,
+    LEMONSQUEEZY_PLAN_CURRENCY,
+    LEMONSQUEEZY_TEST_MODE,
+    PAYMENT_REQUIRED,
+)
+from app.lemonsqueezy_billing import (
+    create_checkout as create_lemonsqueezy_checkout,
+    is_configured as is_lemonsqueezy_configured,
+    record_webhook as record_lemonsqueezy_webhook,
+    verify_webhook_signature,
+)
 from extractors.project_extractor import analyze_project_text
 from generators.output_generator import generate_outputs
 from generators.plan_generator import generate_project_plan
@@ -52,6 +65,19 @@ def health() -> dict[str, str]:
 
 @app.get("/api/billing/config")
 def get_billing_config() -> dict[str, Any]:
+    if BILLING_PROVIDER == "lemonsqueezy":
+        return {
+            "provider": "lemonsqueezy",
+            "active_provider": BILLING_PROVIDER,
+            "payment_required": PAYMENT_REQUIRED,
+            "tap_configured": is_lemonsqueezy_configured(),
+            "amount": LEMONSQUEEZY_PLAN_AMOUNT_CENTS / 100,
+            "currency": LEMONSQUEEZY_PLAN_CURRENCY,
+            "interval": "month",
+            "interval_days": 30,
+            "save_card_requested": False,
+            "test_mode": LEMONSQUEEZY_TEST_MODE,
+        }
     return billing_config()
 
 
@@ -62,6 +88,8 @@ def get_billing_status(email: str | None = Query(default=None)) -> dict[str, Any
 
 @app.post("/api/billing/checkout")
 async def billing_checkout(payload: CheckoutRequest) -> dict[str, Any]:
+    if BILLING_PROVIDER == "lemonsqueezy":
+        return await create_lemonsqueezy_checkout(payload)
     return await create_tap_checkout(payload)
 
 
@@ -73,6 +101,13 @@ async def billing_confirm(tap_id: str, email: str) -> dict[str, Any]:
 @app.post("/api/billing/webhook")
 async def billing_webhook(payload: dict[str, Any]) -> dict[str, str]:
     return await record_tap_webhook(payload)
+
+
+@app.post("/api/billing/lemonsqueezy/webhook")
+async def lemonsqueezy_billing_webhook(request: Request) -> dict[str, str]:
+    raw_body = await request.body()
+    verify_webhook_signature(raw_body, request.headers.get("x-signature"))
+    return record_lemonsqueezy_webhook(await request.json())
 
 
 @app.get("/api/projects")

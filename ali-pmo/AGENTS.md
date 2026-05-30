@@ -15,6 +15,7 @@ Ali PMO is not a chatbot. It is an executive-level project management operating 
 - `backend/generators/`: project plan, Excel, CSV, Markdown, RAID, and Microsoft Project XML generation.
 - `backend/storage/`: project-folder storage, metadata, parser status, text cache, analysis, plan JSON, and generated outputs.
 - `backend/app/billing.py`: Tap checkout, payment confirmation, webhook recording, and payment-gate logic.
+- `backend/app/lemonsqueezy_billing.py`: Lemon Squeezy hosted checkout and signed subscription webhook handling.
 - `samples/`: sample input documents for demos and manual testing.
 - `netlify.toml`: frontend deployment config for Netlify.
 
@@ -27,6 +28,7 @@ Ali PMO is not a chatbot. It is an executive-level project management operating 
 - Keep frontend UI professional, dense enough for PMO work, and focused on the actual workflow.
 - Prefer small typed functions over broad utility modules.
 - Keep Tap secret keys backend-only. Never expose `TAP_SECRET_KEY` in frontend code.
+- Keep Lemon Squeezy API keys and webhook signing secrets backend-only. Never expose them in frontend code.
 - Treat billing JSON storage as prototype-only. Move subscriptions to a database before production.
 
 ## Run Backend

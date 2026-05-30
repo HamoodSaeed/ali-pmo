@@ -48,7 +48,10 @@ def is_subscription_active(email: str) -> bool:
     subscription = get_subscription(email)
     if not subscription or subscription.get("status") != "active":
         return False
-    if str(subscription.get("tap_status", "")).upper() != "CAPTURED":
+    provider = subscription.get("provider", "tap")
+    if provider == "tap" and str(subscription.get("tap_status", "")).upper() != "CAPTURED":
+        return False
+    if provider == "lemonsqueezy" and not subscription.get("provider_status"):
         return False
 
     period_end = subscription.get("current_period_end")
