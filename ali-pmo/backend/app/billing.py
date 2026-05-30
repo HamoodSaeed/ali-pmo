@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from decimal import Decimal
 from typing import Any
 from uuid import uuid4
 
@@ -24,6 +25,10 @@ from app.config import (
 from storage.billing_storage import get_subscription, is_subscription_active, normalize_email, save_subscription, utc_now
 
 
+CAPTURED_STATUSES = {"CAPTURED"}
+FAILED_STATUSES = {"ABANDONED", "CANCELLED", "FAILED", "DECLINED", "RESTRICTED", "VOID", "TIMEDOUT", "UNKNOWN"}
+
+
 class CheckoutRequest(BaseModel):
     email: EmailStr
     first_name: str = Field(default="", max_length=80)
@@ -42,6 +47,11 @@ def billing_config() -> dict[str, Any]:
         "interval_days": TAP_PLAN_INTERVAL_DAYS,
         "save_card_requested": TAP_SAVE_CARD,
     }
+
+
+def current_plan_code() -> str:
+    amount_part = f"{TAP_PLAN_AMOUNT:.3f}".replace(".", "_")
+    return f"monthly_{TAP_PLAN_CURRENCY.lower()}_{amount_part}"
 
 
 def billing_status(email: str | None) -> dict[str, Any]:
@@ -93,7 +103,7 @@ async def create_tap_checkout(payload: CheckoutRequest) -> dict[str, Any]:
         "description": f"Ali PMO monthly subscription - {TAP_PLAN_AMOUNT:.3f} {TAP_PLAN_CURRENCY} per user",
         "metadata": {
             "product": "ali-pmo",
-            "plan": "monthly_omr_1.00",
+            "plan": current_plan_code(),
             "billing_interval": "month",
             "user_email": email,
         },
@@ -125,7 +135,7 @@ async def create_tap_checkout(payload: CheckoutRequest) -> dict[str, Any]:
         email,
         {
             "status": "pending",
-            "plan": "monthly_omr_0_050",
+            "plan": current_plan_code(),
             "amount": TAP_PLAN_AMOUNT,
             "currency": TAP_PLAN_CURRENCY,
             "tap_charge_id": charge.get("id"),
@@ -161,17 +171,21 @@ async def confirm_tap_charge(tap_id: str, email: str) -> dict[str, Any]:
 
     charge = response.json()
     tap_status = str(charge.get("status", "")).upper()
-    if tap_status not in {"CAPTURED", "PAID", "AUTHORIZED"}:
+    validation_error = validate_successful_charge(charge, normalized, tap_id)
+    if tap_status not in CAPTURED_STATUSES or validation_error:
         save_subscription(
             normalized,
             {
                 **(get_subscription(normalized) or {}),
-                "status": "payment_failed",
+                "status": "payment_failed" if tap_status in FAILED_STATUSES or validation_error else "pending",
                 "tap_status": tap_status,
                 "tap_charge_id": charge.get("id", tap_id),
+                "tap_amount": charge.get("amount"),
+                "tap_currency": charge.get("currency"),
+                "failure_reason": validation_error or f"Tap payment is not captured. Current status: {tap_status or 'unknown'}",
             },
         )
-        raise HTTPException(status_code=402, detail=f"Tap payment is not complete. Current status: {tap_status or 'unknown'}")
+        raise HTTPException(status_code=402, detail=validation_error or f"Tap payment is not captured. Current status: {tap_status or 'unknown'}")
 
     now = utc_now()
     subscription = save_subscription(
@@ -179,13 +193,15 @@ async def confirm_tap_charge(tap_id: str, email: str) -> dict[str, Any]:
         {
             **(get_subscription(normalized) or {}),
             "status": "active",
-            "plan": "monthly_omr_0_050",
+            "plan": current_plan_code(),
             "amount": TAP_PLAN_AMOUNT,
             "currency": TAP_PLAN_CURRENCY,
             "started_at": now.isoformat(),
             "current_period_end": (now + timedelta(days=TAP_PLAN_INTERVAL_DAYS)).isoformat(),
-            "tap_status": tap_status,
+            "tap_status": "CAPTURED",
             "tap_charge_id": charge.get("id", tap_id),
+            "tap_amount": charge.get("amount"),
+            "tap_currency": charge.get("currency"),
             "tap_customer_id": charge.get("customer", {}).get("id"),
             "tap_card_id": charge.get("card", {}).get("id"),
             "tap_payment_agreement_id": charge.get("payment_agreement", {}).get("id"),
@@ -198,23 +214,66 @@ async def record_tap_webhook(payload: dict[str, Any]) -> dict[str, str]:
     email = payload.get("metadata", {}).get("user_email") or payload.get("customer", {}).get("email")
     if not email:
         return {"status": "ignored"}
-    if str(payload.get("status", "")).upper() in {"CAPTURED", "PAID", "AUTHORIZED"}:
+    tap_status = str(payload.get("status", "")).upper()
+    validation_error = validate_successful_charge(payload, normalize_email(email), str(payload.get("id", "")))
+    if tap_status in CAPTURED_STATUSES and not validation_error:
         now = utc_now()
         save_subscription(
             email,
             {
                 **(get_subscription(email) or {}),
                 "status": "active",
-                "plan": "monthly_omr_0_050",
+                "plan": current_plan_code(),
                 "amount": TAP_PLAN_AMOUNT,
                 "currency": TAP_PLAN_CURRENCY,
                 "started_at": now.isoformat(),
                 "current_period_end": (now + timedelta(days=TAP_PLAN_INTERVAL_DAYS)).isoformat(),
-                "tap_status": payload.get("status"),
+                "tap_status": "CAPTURED",
                 "tap_charge_id": payload.get("id"),
+                "tap_amount": payload.get("amount"),
+                "tap_currency": payload.get("currency"),
                 "tap_customer_id": payload.get("customer", {}).get("id"),
                 "tap_card_id": payload.get("card", {}).get("id"),
                 "tap_payment_agreement_id": payload.get("payment_agreement", {}).get("id"),
             },
         )
+    else:
+        save_subscription(
+            email,
+            {
+                **(get_subscription(email) or {}),
+                "status": "payment_failed" if tap_status in FAILED_STATUSES or validation_error else "pending",
+                "tap_status": tap_status,
+                "tap_charge_id": payload.get("id"),
+                "tap_amount": payload.get("amount"),
+                "tap_currency": payload.get("currency"),
+                "failure_reason": validation_error or f"Tap payment is not captured. Current status: {tap_status or 'unknown'}",
+            },
+        )
     return {"status": "ok"}
+
+
+def validate_successful_charge(charge: dict[str, Any], email: str, tap_id: str) -> str | None:
+    if charge.get("id") and charge.get("id") != tap_id:
+        return "Tap charge ID mismatch."
+
+    charge_currency = str(charge.get("currency", "")).upper()
+    if charge_currency != TAP_PLAN_CURRENCY.upper():
+        return f"Tap currency mismatch. Expected {TAP_PLAN_CURRENCY}, got {charge_currency or 'unknown'}."
+
+    try:
+        charge_amount = Decimal(str(charge.get("amount")))
+        expected_amount = Decimal(f"{TAP_PLAN_AMOUNT:.3f}")
+    except Exception:
+        return "Tap amount is missing or invalid."
+
+    if charge_amount != expected_amount:
+        return f"Tap amount mismatch. Expected {expected_amount} {TAP_PLAN_CURRENCY}, got {charge_amount} {charge_currency}."
+
+    metadata_email = charge.get("metadata", {}).get("user_email")
+    customer_email = charge.get("customer", {}).get("email")
+    charge_email = normalize_email(metadata_email or customer_email or email)
+    if charge_email != normalize_email(email):
+        return "Tap customer email mismatch."
+
+    return None

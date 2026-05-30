@@ -71,7 +71,7 @@ The Vite dev server proxies `/api` calls to the FastAPI backend.
 
 ## Tap Billing Setup
 
-Ali PMO includes a Tap Payments checkout flow for a `0.050 OMR` monthly user subscription.
+Ali PMO includes a Tap Payments checkout flow for a `1.000 OMR` monthly user subscription.
 
 Backend environment variables:
 
